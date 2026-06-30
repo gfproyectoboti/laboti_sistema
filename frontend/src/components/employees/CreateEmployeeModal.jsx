@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Loader2, UserCog } from "lucide-react"
+import { Loader2, UserCog, ShieldCheck } from "lucide-react"
 
 export default function CreateEmployeeModal({ open, onOpenChange, onSuccess, onError }) {
   const [form, setForm] = useState({
@@ -23,6 +23,7 @@ export default function CreateEmployeeModal({ open, onOpenChange, onSuccess, onE
     salary_type: "hourly",
     hourly_rate: 0,
     monthly_salary: 0,
+    role: "EMPLOYEE",
   })
   const [loading, setLoading] = useState(false)
   const [localError, setLocalError] = useState(null)
@@ -31,7 +32,6 @@ export default function CreateEmployeeModal({ open, onOpenChange, onSuccess, onE
     e.preventDefault()
     setLocalError(null)
 
-    // Validaciones Locales de Robustez
     const cleanUsername = form.username.trim()
     const cleanFirstName = form.first_name.trim()
     const cleanLastName = form.last_name.trim()
@@ -61,14 +61,16 @@ export default function CreateEmployeeModal({ open, onOpenChange, onSuccess, onE
       return
     }
 
-    if (form.salary_type === "hourly" && (Number(form.hourly_rate) <= 0 || isNaN(form.hourly_rate))) {
-      setLocalError("La tarifa por hora debe ser un número mayor a 0.")
-      return
-    }
+    if (form.role !== "MANAGER") {
+      if (form.salary_type === "hourly" && (Number(form.hourly_rate) <= 0 || isNaN(form.hourly_rate))) {
+        setLocalError("La tarifa por hora debe ser un número mayor a 0.")
+        return
+      }
 
-    if (form.salary_type === "fixed" && (Number(form.monthly_salary) <= 0 || isNaN(form.monthly_salary))) {
-      setLocalError("El sueldo mensual fijo debe ser un número mayor a 0.")
-      return
+      if (form.salary_type === "fixed" && (Number(form.monthly_salary) <= 0 || isNaN(form.monthly_salary))) {
+        setLocalError("El sueldo mensual fijo debe ser un número mayor a 0.")
+        return
+      }
     }
 
     setLoading(true)
@@ -81,6 +83,7 @@ export default function CreateEmployeeModal({ open, onOpenChange, onSuccess, onE
         email: cleanEmail || null,
         hourly_rate: Number(form.hourly_rate),
         monthly_salary: form.salary_type === "fixed" ? Number(form.monthly_salary) : null,
+        role: form.role,
       }
       await api.post("/admin/employees", payload)
       setForm({
@@ -92,6 +95,7 @@ export default function CreateEmployeeModal({ open, onOpenChange, onSuccess, onE
         salary_type: "hourly",
         hourly_rate: 0,
         monthly_salary: 0,
+        role: "EMPLOYEE",
       })
       onOpenChange(false)
       onSuccess()
@@ -126,26 +130,26 @@ export default function CreateEmployeeModal({ open, onOpenChange, onSuccess, onE
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="c-first-name">Nombre</Label>
-                <Input
-                  id="c-first-name"
-                  required
-                  value={form.first_name}
-                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="c-first-name">Nombre</Label>
+                  <Input
+                    id="c-first-name"
+                    required
+                    value={form.first_name}
+                    onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="c-last-name">Apellido</Label>
+                  <Input
+                    id="c-last-name"
+                    required
+                    value={form.last_name}
+                    onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="c-last-name">Apellido</Label>
-                <Input
-                  id="c-last-name"
-                  required
-                  value={form.last_name}
-                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                />
-              </div>
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="c-username">Nombre de Usuario</Label>
@@ -181,44 +185,71 @@ export default function CreateEmployeeModal({ open, onOpenChange, onSuccess, onE
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="c-salary-type">Tipo de Contrato</Label>
-              <select
-                id="c-salary-type"
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none"
-                value={form.salary_type}
-                onChange={(e) => setForm({ ...form, salary_type: e.target.value })}
-              >
-                <option value="hourly">Por hora</option>
-                <option value="fixed">Sueldo Fijo Mensual</option>
-              </select>
-            </div>
+            {/* Tipo de contrato y salario — solo para EMPLOYEE */}
+            {form.role !== "MANAGER" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="c-salary-type">Tipo de Contrato</Label>
+                  <select
+                    id="c-salary-type"
+                    className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none"
+                    value={form.salary_type}
+                    onChange={(e) => setForm({ ...form, salary_type: e.target.value })}
+                  >
+                    <option value="hourly">Por hora</option>
+                    <option value="fixed">Sueldo Fijo Mensual</option>
+                  </select>
+                </div>
 
-            {form.salary_type === "hourly" ? (
-              <div className="space-y-2">
-                <Label htmlFor="c-hourly-rate">Tarifa por hora ($)</Label>
-                <Input
-                  id="c-hourly-rate"
-                  type="number"
-                  min="0"
-                  required
-                  value={form.hourly_rate || ""}
-                  onChange={(e) => setForm({ ...form, hourly_rate: e.target.value })}
-                />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label htmlFor="c-monthly-salary">Sueldo Fijo Mensual ($)</Label>
-                <Input
-                  id="c-monthly-salary"
-                  type="number"
-                  min="0"
-                  required
-                  value={form.monthly_salary || ""}
-                  onChange={(e) => setForm({ ...form, monthly_salary: e.target.value })}
-                />
-              </div>
+                {form.salary_type === "hourly" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="c-hourly-rate">Tarifa por hora ($)</Label>
+                    <Input
+                      id="c-hourly-rate"
+                      type="number"
+                      min="0"
+                      required
+                      value={form.hourly_rate || ""}
+                      onChange={(e) => setForm({ ...form, hourly_rate: e.target.value })}
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="c-monthly-salary">Sueldo Fijo Mensual ($)</Label>
+                    <Input
+                      id="c-monthly-salary"
+                      type="number"
+                      min="0"
+                      required
+                      value={form.monthly_salary || ""}
+                      onChange={(e) => setForm({ ...form, monthly_salary: e.target.value })}
+                    />
+                  </div>
+                )}
+              </>
             )}
+
+            {/* Selector de Rol: Encargado (MANAGER) */}
+            <div className="flex items-start gap-3 p-3 rounded-lg border border-amber-500/20 bg-amber-500/5">
+              <input
+                id="c-role-manager"
+                type="checkbox"
+                className="mt-0.5 size-4 rounded border-input bg-background accent-amber-600 focus:ring-amber-500"
+                checked={form.role === "MANAGER"}
+                onChange={(e) =>
+                  setForm({ ...form, role: e.target.checked ? "MANAGER" : "EMPLOYEE" })
+                }
+              />
+              <div>
+                <Label htmlFor="c-role-manager" className="text-sm font-medium cursor-pointer text-foreground select-none flex items-center gap-1.5">
+                  <ShieldCheck className="size-4 text-amber-500" />
+                  Hacer Encargado
+                </Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  El encargado tiene acceso a todas las funcionalidades del panel de administración.
+                </p>
+              </div>
+            </div>
           </div>
 
           <DialogFooter className="gap-3 sm:gap-2">

@@ -1,12 +1,12 @@
 const prisma = require('../config/db');
 const { getAdminContext } = require('../utils/adminContext');
-const { STATUS_AMOUNT } = require('../utils/constants');
+const { STATUS_AMOUNT, isAdminLevel } = require('../utils/constants');
 
 const getAllProviders = async (userId, userRole = 'ADMIN', page = null, limit = null) => {
     const whereConditions = {
         NOT: { name: { contains: '(ELIMINADO' } }
     };
-    if (userRole === 'EMPLOYEE') {
+    if (!isAdminLevel(userRole)) {
         whereConditions.visible_to_employee = true;
     }
 

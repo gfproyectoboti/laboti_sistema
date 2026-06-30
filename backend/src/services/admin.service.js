@@ -1,8 +1,9 @@
 const prisma = require('../config/db');
 const bcrypt = require('bcrypt');
+const { ROLES } = require('../utils/constants');
 
 const createEmployee = async (employeeData) => {
-    const { username, first_name, last_name, password, hourly_rate, salary_type, monthly_salary, email } = employeeData;
+    const { username, first_name, last_name, password, hourly_rate, salary_type, monthly_salary, email, role } = employeeData;
 
     const existingUser = await prisma.user.findUnique({ where: { username } });
     if (existingUser) {
@@ -24,38 +25,42 @@ const createEmployee = async (employeeData) => {
     const password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     return await prisma.$transaction(async (tx) => {
+        const employeeRole = role === ROLES.MANAGER ? ROLES.MANAGER : ROLES.EMPLOYEE;
+
         const newUser = await tx.user.create({
             data: {
                 username,
                 password_hash,
                 email: email ? email.toLowerCase().trim() : null,
-                role: 'EMPLOYEE',
+                role: employeeRole,
                 must_change_password: true
             },
             select: { id: true, username: true, email: true, role: true, created_at: true }
         });
 
-        await tx.employeeProfile.create({
-            data: {
-                user_id: newUser.id,
-                hourly_rate,
-                first_name,
-                last_name,
-                salary_type,
-                monthly_salary: salary_type === 'fixed' ? monthly_salary : null
-            }
-        });
+        if (employeeRole === ROLES.EMPLOYEE || employeeRole === ROLES.MANAGER) {
+            // Creamos perfil salarial (el MANAGER tendrá 0 si se ocultan los inputs)
+            await tx.employeeProfile.create({
+                data: {
+                    user_id: newUser.id,
+                    hourly_rate: hourly_rate || 0,
+                    first_name,
+                    last_name,
+                    salary_type: salary_type || 'hourly',
+                    monthly_salary: salary_type === 'fixed' ? (monthly_salary || 0) : null
+                }
+            });
 
-        // Explicitamos todos los permisos en false para seguridad
-        await tx.employeePermission.create({
-            data: {
-                user_id: newUser.id,
-                canRegisterClosures: false,
-                canRegisterExpenses: false,
-                canPayExpenses: false,
-                canManageProviders: false
-            }
-        });
+            await tx.employeePermission.create({
+                data: {
+                    user_id: newUser.id,
+                    canRegisterClosures: employeeRole === ROLES.MANAGER,
+                    canRegisterExpenses: employeeRole === ROLES.MANAGER,
+                    canPayExpenses: employeeRole === ROLES.MANAGER,
+                    canManageProviders: employeeRole === ROLES.MANAGER
+                }
+            });
+        }
 
         return newUser;
     });
@@ -64,7 +69,7 @@ const createEmployee = async (employeeData) => {
 
 const getEmployees = async () => {
     return await prisma.user.findMany({
-        where: { role: 'EMPLOYEE', deleted_at: null },
+        where: { role: { in: [ROLES.EMPLOYEE, ROLES.MANAGER] }, deleted_at: null },
         select: {
             id: true,
             username: true,
@@ -116,7 +121,7 @@ const updateEmployeeProfile = async (userId, profileData) => {
 
 const deleteEmployee = async (id) => {
     const user = await prisma.user.findUnique({ where: { id } });
-    if (!user || user.role === 'ADMIN' || user.deleted_at !== null) {
+    if (!user || user.role === ROLES.ADMIN || user.deleted_at !== null) {
         const error = new Error('Empleado no encontrado');
         error.statusCode = 404;
         throw error;

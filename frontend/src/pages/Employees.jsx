@@ -189,11 +189,13 @@ export default function Employees() {
                         </TableCell>
                         <TableCell>
                           <span className="capitalize text-sm font-medium">
-                            {profile.salary_type === "hourly" ? "Por Hora" : "Sueldo Fijo"}
+                            {emp.role === "MANAGER" ? "N/A" : (profile.salary_type === "hourly" ? "Por Hora" : "Sueldo Fijo")}
                           </span>
                         </TableCell>
                         <TableCell className="font-semibold">
-                          {profile.salary_type === "hourly" ? (
+                          {emp.role === "MANAGER" ? (
+                            <span className="text-muted-foreground">-</span>
+                          ) : profile.salary_type === "hourly" ? (
                             <span>${formatMoney(profile.hourly_rate)} / hr</span>
                           ) : (
                             <span>${formatMoney(profile.monthly_salary || 0)} / mes</span>
@@ -201,34 +203,42 @@ export default function Employees() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1.5">
-                            {perms.canRegisterClosures && (
-                              <span className="rounded bg-sky-500/10 px-2 py-0.5 text-xs font-semibold text-sky-500">
-                                Cierres
+                            {emp.role === "MANAGER" ? (
+                              <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                Encargado (Acceso Total)
                               </span>
+                            ) : (
+                              <>
+                                {perms.canRegisterClosures && (
+                                  <span className="rounded bg-sky-500/10 px-2 py-0.5 text-xs font-semibold text-sky-500">
+                                    Cierres
+                                  </span>
+                                )}
+                                {perms.canRegisterExpenses && (
+                                  <span className="rounded bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-500">
+                                    Gastos
+                                  </span>
+                                )}
+                                {perms.canPayExpenses && (
+                                  <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-500">
+                                    Pagar Egresos
+                                  </span>
+                                )}
+                                {perms.canManageProviders && (
+                                  <span className="rounded bg-purple-500/10 px-2 py-0.5 text-xs font-semibold text-purple-500">
+                                    Proveedores
+                                  </span>
+                                )}
+                                {!perms.canRegisterClosures &&
+                                  !perms.canRegisterExpenses &&
+                                  !perms.canPayExpenses &&
+                                  !perms.canManageProviders && (
+                                    <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                                      Sin permisos
+                                    </span>
+                                  )}
+                              </>
                             )}
-                            {perms.canRegisterExpenses && (
-                              <span className="rounded bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-500">
-                                Gastos
-                              </span>
-                            )}
-                            {perms.canPayExpenses && (
-                              <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-500">
-                                Pagar Egresos
-                              </span>
-                            )}
-                            {perms.canManageProviders && (
-                              <span className="rounded bg-purple-500/10 px-2 py-0.5 text-xs font-semibold text-purple-500">
-                                Proveedores
-                              </span>
-                            )}
-                            {!perms.canRegisterClosures &&
-                              !perms.canRegisterExpenses &&
-                              !perms.canPayExpenses &&
-                              !perms.canManageProviders && (
-                                <span className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                                  Sin permisos
-                                </span>
-                              )}
                           </div>
                         </TableCell>
                         <TableCell className="text-right">

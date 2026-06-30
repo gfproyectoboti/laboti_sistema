@@ -22,7 +22,7 @@ const registerSchema = z.object({
     pct_merchandise: pctField('Mercadería').optional(),
     pct_fixed_expenses: pctField('Gastos Fijos').optional(),
     pct_savings: pctField('Ahorros').optional(),
-    role: z.enum(['ADMIN', 'EMPLOYEE']).optional(),
+    role: z.enum(['ADMIN', 'MANAGER', 'EMPLOYEE']).optional(),
     first_name: z.string().optional(),
     last_name: z.string().optional(),
     salary_type: z.enum(['hourly', 'fixed']).optional(),
@@ -122,7 +122,8 @@ const createEmployeeSchema = z.object({
     hourly_rate: z.number().nonnegative('La tarifa por hora debe ser mayor o igual a 0'),
     salary_type: z.enum(['hourly', 'fixed'], { errorMap: () => ({ message: 'Tipo de salario inválido' }) }),
     monthly_salary: z.number().nonnegative('El salario mensual debe ser mayor o igual a 0').nullable().optional(),
-    email: z.string().email('Debe ingresar un email válido').max(255).nullable().optional()
+    email: z.string().email('Debe ingresar un email válido').max(255).nullable().optional(),
+    role: z.enum(['EMPLOYEE', 'MANAGER'], { errorMap: () => ({ message: 'Rol inválido' }) }).optional()
 });
 
 const updatePermissionsSchema = z.object({

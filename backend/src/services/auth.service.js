@@ -1,5 +1,6 @@
 // backend/src/services/auth.service.js
 const bcrypt = require('bcrypt');
+const { isAdminLevel } = require('../utils/constants');
 const prisma = require('../config/db');
 const {
     generateAccessToken,
@@ -19,7 +20,8 @@ const register = async (userData) => {
         throw error;
     }
 
-    const userRole = role === 'ADMIN' ? 'ADMIN' : 'EMPLOYEE';
+    const validRoles = ['ADMIN', 'MANAGER', 'EMPLOYEE'];
+    const userRole = validRoles.includes(role) ? role : 'EMPLOYEE';
 
     if (userRole === 'ADMIN') {
         const adminExists = await prisma.user.findFirst({
@@ -87,10 +89,10 @@ const register = async (userData) => {
             await tx.employeePermission.create({
                 data: {
                     user_id: user.id,
-                    canRegisterClosures: true,
-                    canRegisterExpenses: true,
-                    canPayExpenses: false,
-                    canManageProviders: false
+                    canRegisterClosures: userRole === 'MANAGER',
+                    canRegisterExpenses: userRole === 'MANAGER',
+                    canPayExpenses: userRole === 'MANAGER',
+                    canManageProviders: userRole === 'MANAGER'
                 }
             });
         }
@@ -124,7 +126,7 @@ const login = async ({ username, password }) => {
         mustChangePassword: user.must_change_password,
     };
 
-    if (user.role === 'EMPLOYEE' && user.employeePermission) {
+    if (!isAdminLevel(user.role) && user.employeePermission) {
         payload.permissions = {
             canRegisterClosures: user.employeePermission.canRegisterClosures,
             canRegisterExpenses: user.employeePermission.canRegisterExpenses,
@@ -201,7 +203,7 @@ const refreshAccessToken = async (refreshTokenStr) => {
         role: user.role,
     };
 
-    if (user.role === 'EMPLOYEE' && user.employeePermission) {
+    if (!isAdminLevel(user.role) && user.employeePermission) {
         payload.permissions = {
             canRegisterClosures: user.employeePermission.canRegisterClosures,
             canRegisterExpenses: user.employeePermission.canRegisterExpenses,

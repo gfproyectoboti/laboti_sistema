@@ -31,7 +31,7 @@ const DEFAULT_FORM = { id: null, name: "", payment_condition: "Contado", credit_
 
 export default function ProvidersModule() {
   const { user } = useAuth()
-  const isAdmin = user?.role === "ADMIN"
+  const isAdmin = user?.role === "ADMIN" || user?.role === "MANAGER"
   const canManage = isAdmin || user?.permissions?.canManageProviders === true
 
   const [providers, setProviders] = useState([])

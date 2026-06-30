@@ -41,7 +41,7 @@ export function NavUser({ user }) {
     .toUpperCase()
     .slice(0, 2)
 
-  const rolLabel = user.role === "ADMIN" ? "Administrador" : "Empleado"
+  const rolLabel = user.role === "ADMIN" ? "Administrador" : user.role === "MANAGER" ? "Encargado" : "Empleado"
 
   const handleLogout = () => {
     logout()
@@ -88,7 +88,7 @@ export function NavUser({ user }) {
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{user.name}</span>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    {user.role === "ADMIN" ? (
+                    {user.role === "ADMIN" || user.role === "MANAGER" ? (
                       <Shield className="size-3 text-amber-500" />
                     ) : (
                       <User className="size-3" />

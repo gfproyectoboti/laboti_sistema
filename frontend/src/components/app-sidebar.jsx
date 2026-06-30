@@ -33,7 +33,7 @@ import {
  * Filtra dinámicamente las opciones del menú según el rol y permisos del usuario.
  */
 export function AppSidebar({ ...props }) {
-  const { user, isAdmin, hasPermission } = useAuth()
+  const { user, isAdmin, isManager, hasPermission } = useAuth()
 
   const navMain = React.useMemo(() => {
     const items = []
@@ -127,7 +127,7 @@ export function AppSidebar({ ...props }) {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Gestor Financiero</span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {isAdmin ? "Administrador" : "Empleado"}
+                  {isManager ? "Encargado" : isAdmin ? "Administrador" : "Empleado"}
                 </span>
               </div>
             </SidebarMenuButton>

@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-const { BUDGET_CATEGORIES, STATUS_AMOUNT } = require('../utils/constants');
+const { BUDGET_CATEGORIES, STATUS_AMOUNT, ROLES } = require('../utils/constants');
 
 const attendanceService = {
 
@@ -29,7 +29,7 @@ const attendanceService = {
         }
 
         const employee = await prisma.user.findFirst({
-            where: { id: employeeId, role: 'EMPLOYEE' },
+            where: { id: employeeId, role: ROLES.EMPLOYEE },
             include: { employeeProfile: true }
         });
 
@@ -334,7 +334,7 @@ const attendanceService = {
         }
 
         const employee = await prisma.user.findFirst({
-            where: { id: employeeId, role: 'EMPLOYEE' },
+            where: { id: employeeId, role: ROLES.EMPLOYEE },
             include: { employeeProfile: true }
         });
 

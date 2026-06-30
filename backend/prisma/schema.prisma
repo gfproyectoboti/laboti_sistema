@@ -212,6 +212,7 @@ model PasswordResetToken {
 
 enum Role {
   ADMIN
+  MANAGER
   EMPLOYEE
 }
 

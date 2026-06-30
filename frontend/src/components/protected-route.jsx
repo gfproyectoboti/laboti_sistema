@@ -39,7 +39,12 @@ export function ProtectedRoute({ children, requiredRole, requiredPermission }) {
 
   // Si se requiere un rol específico y el usuario no lo tiene → al dashboard
   if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to="/dashboard" replace />
+    // MANAGER tiene acceso a las rutas que requieren ADMIN
+    if (requiredRole === "ADMIN" && user.role === "MANAGER") {
+      // permitido
+    } else {
+      return <Navigate to="/dashboard" replace />
+    }
   }
 
   // Si se requiere un permiso específico y no lo tiene → al dashboard

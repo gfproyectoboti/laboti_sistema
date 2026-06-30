@@ -1,6 +1,6 @@
 const prisma = require('../config/db');
 const { getAdminContext } = require('../utils/adminContext');
-const { STATUS_AMOUNT, BUDGET_CATEGORIES } = require('../utils/constants');
+const { STATUS_AMOUNT, BUDGET_CATEGORIES, ROLES } = require('../utils/constants');
 const Decimal = require('decimal.js');
 
 /**
@@ -57,7 +57,7 @@ const registerAdvance = async ({ employeeUserId, amount, userId, accountId }) =>
 
         // Verificar que el empleado existe y tiene perfil
         const employee = await tx.user.findFirst({
-            where: { id: parseInt(employeeUserId, 10), role: 'EMPLOYEE', deleted_at: null },
+            where: { id: parseInt(employeeUserId, 10), role: ROLES.EMPLOYEE, deleted_at: null },
             include: { employeeProfile: true }
         });
 
@@ -167,7 +167,7 @@ const processMonthlyPayroll = async ({ userId }) => {
 
         // Obtener empleados activos con perfil
         const employees = await tx.user.findMany({
-            where: { role: 'EMPLOYEE', deleted_at: null },
+            where: { role: ROLES.EMPLOYEE, deleted_at: null },
             include: { employeeProfile: true }
         });
 

@@ -12,8 +12,17 @@ const BUDGET_CATEGORIES = {
 
 const ROLES = {
     ADMIN: 'ADMIN',
+    MANAGER: 'MANAGER',
     EMPLOYEE: 'EMPLOYEE'
 };
+
+/**
+ * isAdminLevel — Verifica si un rol tiene privilegios de administrador.
+ * Centraliza la lógica para evitar repetir condiciones en múltiples archivos.
+ * @param {string} role — El rol del usuario
+ * @returns {boolean} — true si el rol tiene acceso de nivel administrador
+ */
+const isAdminLevel = (role) => role === ROLES.ADMIN || role === ROLES.MANAGER;
 
 const STATUS_AMOUNT = {
     PENDING: 'Pendiente',
@@ -29,5 +38,6 @@ module.exports = {
     BUDGET_CATEGORIES,
     ROLES,
     STATUS_AMOUNT,
-    PAYMENT_CONDITIONS
+    PAYMENT_CONDITIONS,
+    isAdminLevel
 };

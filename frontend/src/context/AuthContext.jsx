@@ -154,13 +154,14 @@ export function AuthProvider({ children }) {
   }, [logout]);
 
   // Helpers derivados
-  const isAdmin = user?.role === "ADMIN"
+  const isAdmin = user?.role === "ADMIN" || user?.role === "MANAGER"
+  const isManager = user?.role === "MANAGER"
   const isEmployee = user?.role === "EMPLOYEE"
 
   const hasPermission = useCallback(
     (permission) => {
       if (!user) return false
-      if (user.role === "ADMIN") return true
+      if (user.role === "ADMIN" || user.role === "MANAGER") return true
       return user.permissions?.[permission] === true
     },
     [user]
@@ -170,6 +171,7 @@ export function AuthProvider({ children }) {
     () => ({
       user,
       isAdmin,
+      isManager,
       isEmployee,
       hasPermission,
       login,
@@ -185,6 +187,7 @@ export function AuthProvider({ children }) {
     [
       user,
       isAdmin,
+      isManager,
       isEmployee,
       hasPermission,
       login,

@@ -1,4 +1,4 @@
-const { ROLES } = require('../utils/constants');
+const { ROLES, isAdminLevel } = require('../utils/constants');
 
 /**
  * requirePermission — Factory de middlewares de autorización granular flexible
@@ -21,7 +21,7 @@ const requirePermission = (...permissions) => {
         }
 
         // El administrador del local siempre tiene acceso irrestricto
-        if (req.user.role === ROLES.ADMIN) {
+        if (isAdminLevel(req.user.role)) {
             return next();
         }
 
