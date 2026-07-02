@@ -249,7 +249,7 @@ const attendanceService = {
         return await prisma.attendanceLog.delete({ where: { id } });
     },
 
-    async processPayrollToExpenses({ employeeId, from, to, providerId, accountId, budgetCategory, adminUserId }) {
+    async processPayrollToExpenses({ employeeId, from, to, providerId, accountId, budgetCategory, adminUserId, discountAmount = 0 }) {
         return await prisma.$transaction(async (tx) => {
             const summary = await this.getSummaryForPeriod(from, to, employeeId, tx);
             const employeeData = summary[0];
@@ -258,6 +258,13 @@ const attendanceService = {
                 throw new Error('No hay montos salariales válidos para liquidar en este período');
             }
 
+            if (discountAmount >= employeeData.calculatedAmount) {
+                const error = new Error('El descuento no puede ser mayor o igual al monto a liquidar');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            const finalAmount = parseFloat((employeeData.calculatedAmount - discountAmount).toFixed(2));
             const category = budgetCategory || BUDGET_CATEGORIES.FIXED_EXPENSES;
 
             const payrollExpense = await tx.expense.create({
@@ -265,12 +272,14 @@ const attendanceService = {
                     user_id: adminUserId,
                     provider_id: providerId,
                     account_id: accountId,
-                    amount: employeeData.calculatedAmount,
+                    amount: finalAmount,
                     status: STATUS_AMOUNT.PENDING,
                     due_date: new Date(),
                     budget_category: category
                 }
             });
+
+            const discountNote = discountAmount > 0 ? ` (Descuento aplicado: $${discountAmount})` : '';
 
             await tx.attendanceLog.updateMany({
                 where: {
@@ -279,7 +288,15 @@ const attendanceService = {
                     notes: null
                 },
                 data: {
-                    notes: `Liquidado automáticamente en Egreso ID: ${payrollExpense.id}`
+                    notes: `Liquidado automáticamente en Egreso ID: ${payrollExpense.id}${discountNote}`
+                }
+            });
+
+            await tx.auditLog.create({
+                data: {
+                    user_id: adminUserId,
+                    action: 'LIQUIDAR_SUELDO',
+                    details: `Liquidó el sueldo de ${employeeData.name} por $${finalAmount.toFixed(2)}${discountAmount > 0 ? ` (Descuento aplicado: $${discountAmount})` : ''}`
                 }
             });
 

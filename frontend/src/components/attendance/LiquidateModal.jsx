@@ -18,9 +18,14 @@ export default function LiquidateModal({ open, onOpenChange, summaryItem, from, 
   const [selectedProvider, setSelectedProvider] = useState("")
   const [selectedAccount, setSelectedAccount] = useState("")
   const [budgetCategory, setBudgetCategory] = useState("Gastos Fijos")
+  const [discountAmount, setDiscountAmount] = useState("")
 
   const [loadingLists, setLoadingLists] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+
+  const rawAmount = summaryItem?.calculatedAmount || 0;
+  const parsedDiscount = Number(discountAmount) || 0;
+  const finalAmount = Math.max(0, rawAmount - parsedDiscount);
 
   // Fetch providers and accounts when modal opens
   useEffect(() => {
@@ -68,6 +73,7 @@ export default function LiquidateModal({ open, onOpenChange, summaryItem, from, 
         providerId: Number(selectedProvider),
         accountId: Number(selectedAccount),
         budgetCategory,
+        discountAmount: parsedDiscount,
       }
 
       const res = await api.post("/attendance/liquidate", payload)
@@ -116,10 +122,33 @@ export default function LiquidateModal({ open, onOpenChange, summaryItem, from, 
                 <span className="font-semibold">{summaryItem?.totalHours} hs</span>
               </div>
             )}
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Sueldo Bruto:</span>
+              <span className="font-semibold">{formatMoney(rawAmount)}</span>
+            </div>
+            
+            <div className="flex justify-between text-sm items-center">
+              <Label htmlFor="discount" className="text-muted-foreground font-normal">Descuento (Vales/Adelantos):</Label>
+              <div className="relative w-32">
+                <span className="absolute left-2.5 top-1.5 text-xs text-muted-foreground">$</span>
+                <input
+                  id="discount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  max={rawAmount > 0.01 ? rawAmount - 0.01 : 0}
+                  className="w-full rounded-md border bg-background pl-6 pr-2 py-1 text-sm focus:outline-none text-right font-medium text-destructive [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  value={discountAmount}
+                  onChange={(e) => setDiscountAmount(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
             <div className="flex justify-between text-sm items-center border-t pt-2 mt-2">
-              <span className="text-muted-foreground font-medium">Monto a Liquidar:</span>
+              <span className="text-muted-foreground font-medium">Sueldo Neto a Pagar:</span>
               <span className="font-bold text-lg text-emerald-500">
-                {formatMoney(summaryItem?.calculatedAmount || 0)}
+                {formatMoney(finalAmount)}
               </span>
             </div>
           </div>
@@ -197,7 +226,7 @@ export default function LiquidateModal({ open, onOpenChange, summaryItem, from, 
             )}
           </div>
 
-          <DialogFooter className="mt-2">
+          <DialogFooter className="mt-2 gap-2 sm:gap-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>

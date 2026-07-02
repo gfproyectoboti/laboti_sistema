@@ -65,7 +65,7 @@ const removeAttendance = async (req, res, next) => {
 
 const liquidatePayroll = async (req, res, next) => {
     try {
-        const { employeeId, from, to, providerId, accountId, budgetCategory } = req.body;
+        const { employeeId, from, to, providerId, accountId, budgetCategory, discountAmount } = req.body;
 
         const expense = await attendanceService.processPayrollToExpenses({
             employeeId,
@@ -74,7 +74,8 @@ const liquidatePayroll = async (req, res, next) => {
             providerId,
             accountId,
             budgetCategory,
-            adminUserId: req.user.id
+            adminUserId: req.user.id,
+            discountAmount
         });
 
         return res.status(201).json({
