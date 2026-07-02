@@ -91,51 +91,6 @@
 
 ---
 
-## 📁 **Estructura del Proyecto**
-
-```
-ecommerce-project/
-├── backend/
-│   ├── src/
-│   │   ├── server.js              # Servidor
-│   │   ├── routes/                # Endpoints
-│   │   ├── controllers/           # Lógica
-│   │   ├── middleware/            # Middlewares
-│   │   ├── services/              # Servicios
-│   │   └── validators/            # Esquemas Zod
-│   ├── prisma/
-│   │   ├── schema.prisma          # Modelo de datos
-│   │   └── migrations/            # Migraciones
-│   ├── init.sql                   # Triggers SQL
-│   ├── Dockerfile                 # Multi-stage
-│   └── package.json
-│
-├── documents/
-│   └── MANUAL_DESPLIEGUE_PRODUCCION.md # Manual detallado de producción
-│
-├── frontend/
-│   ├── src/
-│   │   ├── pages/                 # Rutas
-│   │   ├── components/            # Componentes
-│   │   ├── services/              # Cliente API
-│   │   └── main.jsx
-│   ├── Dockerfile
-│   └── package.json
-│
-├── nginx/
-│   ├── nginx.conf
-│   └── ssl/                       # Certificados
-│
-├── docker-compose.yml             # Producción
-├── docker-compose.dev.yml         # Desarrollo
-├── .env.example
-├── MANUAL_DESPLIEGUE_PRODUCCION.md # Manual técnico y despliegue
-├── MANUAL_FUNCIONAL.md             # Explicación de negocio y funcionalidad
-└── README.md                      # Este archivo
-```
-
----
-
 ## 🚀 **Instalación Local (Desarrollo)**
 
 ### 1. Clonar el repositorio
@@ -183,37 +138,6 @@ http://localhost:5173
 
 # Proxy
 http://localhost:8080
-```
-
----
-
-## 🔐 **Seguridad Pre-Producción**
-
-### Variables críticas a generar
-
-```bash
-# Generar JWT_SECRET (64 caracteres)
-openssl rand -base64 64
-
-# Generar POSTGRES_PASSWORD (32 caracteres)
-openssl rand -base64 32
-
-# Generar certificados SSL
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout ./nginx/ssl/private.key \
-  -out ./nginx/ssl/certificate.crt
-```
-
-### Variables de .env producción
-
-```env
-NODE_ENV=production
-POSTGRES_PASSWORD=<generar con openssl>
-JWT_SECRET=<generar con openssl>
-BCRYPT_ROUNDS=12
-CORS_ORIGIN=https://tudominio.com
-VITE_API_URL=https://tudominio.com/api
-LOG_LEVEL=info
 ```
 
 ---
@@ -287,52 +211,6 @@ model EmployeePermission {
 
 ---
 
-## 🔌 **API REST - Endpoints Principales**
-
-### Autenticación
-
-```http
-POST /api/auth/login
-Content-Type: application/json
-{
-  "username": "admin",
-  "password": "contraseña"
-}
-
-Response 200:
-{
-  "access_token": "eyJhbGci...",
-  "refresh_token": "eyJhbGci...",
-  "user": { "id": 1, "username": "admin", "role": "ADMIN" }
-}
-```
-
-### Proveedores
-
-```http
-GET    /api/providers              # Listar
-POST   /api/providers              # Crear
-PUT    /api/providers/:id          # Actualizar
-DELETE /api/providers/:id          # Eliminar
-```
-
-### Egresos
-
-```http
-GET    /api/expenses               # Listar
-POST   /api/expenses               # Registrar
-PUT    /api/expenses/:id/pay       # Pagar
-```
-
-### Cierre Diario
-
-```http
-POST   /api/closures               # Realizar cierre
-GET    /api/closures               # Listar cierres
-```
-
----
-
 ## 🚢 **Despliegue y Puesta en Producción**
 
 Para garantizar un entorno seguro y automatizado, se ha redactado una guía completa paso a paso con las mejores prácticas en el archivo independiente **[Manual de Despliegue y Guía Técnica de Producción](MANUAL_DESPLIEGUE_PRODUCCION.md)**.
@@ -347,31 +225,7 @@ Este manual detalla:
 Recomendamos revisar y seguir la guía paso a paso del manual antes de levantar el stack en su servidor VPS.
 
 ---
-
-## 📁 **Documentación de Entrega y Cierre de Proyecto**
-
-Para la finalización y firma del acuerdo de entrega de software con el cliente, consulte el **[Dossier de Entrega y Cierre](DOSSIER_ENTREGA_CLIENTE.md)**. Este archivo está formateado para imprimirse directamente a PDF en 4 páginas individuales:
-*   **Hoja 1:** Portada formal con logos y datos generales del proyecto.
-*   **Hoja 2:** Introducción y Anexo de Requerimientos Funcionales y No Funcionales.
-*   **Hoja 3:** Presupuesto de infraestructura (Railway, Vercel, Dominio) e Inventario de Credenciales.
-*   **Hoja 4:** Liquidación del precio final, términos de garantía y firmas de conformidad.
-
----
-
-## 📊 **Monitoreo y Diagnóstico Rápido**
-
-Una vez desplegada la aplicación, puede diagnosticar el estado del servidor con los siguientes comandos:
-
-```bash
-# Monitoreo de recursos en tiempo real
-docker stats
-
-# Inspección de los logs en vivo
-docker compose logs -f --tail=100 api_service
-
-# Acceso seguro a la consola del contenedor de base de datos
-docker exec -it gestor_db psql -U gestor_user -d gestor_financiero
 ```
 
 **Última actualización:** Junio 2026  
-**Versión:** 1.0.0
+**Versión:** 1.1.1
