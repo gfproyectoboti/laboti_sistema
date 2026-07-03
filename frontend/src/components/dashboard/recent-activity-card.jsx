@@ -15,6 +15,7 @@ import {
   Settings,
   FileText,
   ShieldCheck,
+  Banknote,
 } from "lucide-react"
 
 /* ──────────────── Mapeo de acción → visual ──────────────── */
@@ -75,6 +76,13 @@ const ACTION_META = {
     color: "text-orange-500",
     bg: "bg-orange-500/10",
     border: "border-orange-500/20",
+  },
+  LIQUIDAR_SUELDO: {
+    label: "Liquidación de sueldo",
+    Icon: Banknote,
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/20",
   },
 }
 

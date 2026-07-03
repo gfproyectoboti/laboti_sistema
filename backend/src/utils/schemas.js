@@ -158,7 +158,8 @@ const liquidatePayrollSchema = z.object({
     accountId: z.number().int().positive('ID de cuenta física inválido'),
     budgetCategory: z.enum(budgetCategoryValues, {
         errorMap: () => ({ message: 'Categoría de presupuesto no válida' }),
-    }).optional().default(BUDGET_CATEGORIES.FIXED_EXPENSES)
+    }).optional().default(BUDGET_CATEGORIES.FIXED_EXPENSES),
+    discountAmount: z.number().nonnegative('El descuento no puede ser negativo').optional().default(0)
 });
 
 const resetPasswordSchema = z.object({
